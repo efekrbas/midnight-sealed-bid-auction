@@ -24,8 +24,25 @@ export function useMidnight() {
       // Select the first available wallet (could be replaced by a UI picker)
       const wallet = wallets[0];
       
-      // Connect to preview network as standard for Midnight testnet
-      const connectedApi = await wallet.connect('preview');
+      // Try connecting to the most common testnet network IDs
+      let connectedApi;
+      try {
+        connectedApi = await wallet.connect('testnet');
+      } catch (err: any) {
+        if (err.message?.includes('Network ID mismatch')) {
+          try {
+            connectedApi = await wallet.connect('preprod');
+          } catch (err2: any) {
+            try {
+               connectedApi = await wallet.connect('preview');
+            } catch (err3: any) {
+               connectedApi = await wallet.connect('undeployed');
+            }
+          }
+        } else {
+          throw err;
+        }
+      }
       
       // Retrieve the user's unshielded address
       const { unshieldedAddress } = await connectedApi.getUnshieldedAddress();
