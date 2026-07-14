@@ -1,0 +1,92 @@
+pragma language_version >= 0.22;
+import CompactStandardLibrary;
+
+// ==========================================
+// PRIVACY MODEL
+// ==========================================
+// - Public On-Chain (Ledger):
+//   - `auctionState`: The phase of the auction (OPEN, REVEAL, CLOSED).
+//   - `minBid`: Minimum acceptable bid.
+//   - `highestBid`: Highest bid revealed so far.
+//   - `highestBidder`: Public identity (derived from secret key) of highest bidder.
+//   - `bids`: Map from bidder's public identity to their bid commitment.
+//
+// - Private (Witnesses):
+//   - `localSecretKey()`: Used to derive the public identity securely.
+//   - `localBidAmount()`: The actual bid amount (sensitive input).
+//   - `localNonce()`: Salt for the commitment.
+//
+// - Proven:
+//   - `submit_bid` proves `localBidAmount() >= minBid` in ZK.
+//   - `reveal_bid` uses `disclose()` to reveal the bid publicly to determine the winner.
+// ==========================================
+
+export enum AuctionState { OPEN, REVEAL, CLOSED }
+
+export sealed ledger organizer: Bytes<32>;
+export sealed ledger minBid: Uint<32>;
+export ledger auctionState: AuctionState;
+export ledger highestBid: Uint<32>;
+export ledger highestBidder: Bytes<32>;
+export ledger bids: Map<Bytes<32>, Bytes<32>>;
+
+witness localSecretKey(): Bytes<32>;
+witness localBidAmount(): Uint<32>;
+witness localNonce(): Bytes<32>;
+
+constructor(minBidAmount: Uint<32>) {
+    organizer = disclose(publicKey(localSecretKey()));
+    minBid = disclose(minBidAmount);
+    auctionState = AuctionState.OPEN;
+    highestBid = 0;
+    highestBidder = default<Bytes<32>>();
+}
+
+export circuit submit_bid(): [] {
+    assert(auctionState == AuctionState.OPEN, "Auction is not open");
+    
+    const bidAmount = localBidAmount();
+    assert(bidAmount >= minBid, "Bid amount is below the minimum bid");
+    
+    const sk = localSecretKey();
+    const pk = publicKey(sk);
+    const nonce = localNonce();
+    
+    const commitment = persistentCommit<Uint<32>>(bidAmount, nonce);
+    
+    bids.insert(disclose(pk), disclose(commitment));
+}
+
+export circuit close_bidding(): [] {
+    const sk = localSecretKey();
+    assert(publicKey(sk) == organizer, "Only organizer can close bidding");
+    assert(auctionState == AuctionState.OPEN, "Auction is not open");
+    
+    auctionState = AuctionState.REVEAL;
+}
+
+export circuit reveal_bid(): [] {
+    assert(auctionState == AuctionState.REVEAL, "Auction is not in the reveal phase");
+    
+    const sk = localSecretKey();
+    const pk = publicKey(sk);
+    const bidAmount = localBidAmount();
+    const nonce = localNonce();
+    
+    const expectedCommitment = persistentCommit<Uint<32>>(bidAmount, nonce);
+    const pubKeyDisclosed = disclose(pk);
+    
+    assert(bids.member(pubKeyDisclosed), "No bid found for this participant");
+    assert(bids.lookup(pubKeyDisclosed) == expectedCommitment, "Commitment mismatch");
+    
+    const publicBid = disclose(bidAmount);
+    
+    if (publicBid > highestBid) {
+        highestBid = publicBid;
+        highestBidder = pubKeyDisclosed;
+    }
+}
+
+pure circuit publicKey(sk: Bytes<32>): Bytes<32> {
+    return persistentHash<Vector<2, Bytes<32>>>([pad(32, "sealedbid:pk:"), sk]);
+}
