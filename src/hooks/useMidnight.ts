@@ -24,19 +24,19 @@ export function useMidnight() {
       // Select the first available wallet (could be replaced by a UI picker)
       const wallet = wallets[0];
       
-      // Try connecting to the most common testnet network IDs
+      // Try connecting to the supported networks in order
       let connectedApi;
       try {
-        connectedApi = await wallet.connect('testnet');
+        connectedApi = await wallet.connect('preprod');
       } catch (err: any) {
         if (err.message?.includes('Network ID mismatch')) {
           try {
-            connectedApi = await wallet.connect('preprod');
+            connectedApi = await wallet.connect('preview');
           } catch (err2: any) {
             try {
-               connectedApi = await wallet.connect('preview');
-            } catch (err3: any) {
                connectedApi = await wallet.connect('undeployed');
+            } catch (err3: any) {
+               connectedApi = await wallet.connect('mainnet');
             }
           }
         } else {
