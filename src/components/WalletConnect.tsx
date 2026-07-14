@@ -1,4 +1,3 @@
-import React from 'react';
 import { useMidnight } from '../hooks/useMidnight';
 
 export default function WalletConnect() {

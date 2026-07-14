@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { useMidnight } from '../hooks/useMidnight';
 
 export default function AuctionDashboard() {
@@ -9,11 +9,11 @@ export default function AuctionDashboard() {
 
   // Mock auction state - in a real app this would be fetched from the indexer
   // using publicDataProvider.queryContractState()
-  const auctionState = 'OPEN'; // 'OPEN', 'REVEAL', 'CLOSED'
+  const auctionState: string = 'OPEN'; // 'OPEN', 'REVEAL', 'CLOSED'
   const highestBid = 0;
   const minBid = 150;
 
-  const handleBidSubmit = async (e: React.FormEvent) => {
+  const handleBidSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!bidAmount) return;
     

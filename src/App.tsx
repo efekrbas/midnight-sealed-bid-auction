@@ -1,4 +1,3 @@
-import React from 'react';
 import Layout from './components/Layout';
 import WalletConnect from './components/WalletConnect';
 import AuctionDashboard from './components/AuctionDashboard';
