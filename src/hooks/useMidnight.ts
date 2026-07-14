@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, createContext, useContext, ReactNode } from 'react';
 import type { InitialAPI } from '@midnight-ntwrk/dapp-connector-api';
 // Side-effect import to augment window.midnight
 import '@midnight-ntwrk/dapp-connector-api';
@@ -8,7 +8,17 @@ export const listWallets = (): InitialAPI[] => {
   return injected ? Object.values(injected) : [];
 };
 
-export function useMidnight() {
+interface MidnightContextType {
+  isConnected: boolean;
+  isConnecting: boolean;
+  walletAddress: string | null;
+  connect: () => Promise<void>;
+  disconnect: () => void;
+}
+
+const MidnightContext = createContext<MidnightContextType | undefined>(undefined);
+
+export function MidnightProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -65,6 +75,17 @@ export function useMidnight() {
     setWalletAddress(null);
   }, []);
 
-  // Provide everything needed to interact with the wallet
-  return { isConnected, isConnecting, walletAddress, connect, disconnect };
+  return (
+    <MidnightContext.Provider value={{ isConnected, isConnecting, walletAddress, connect, disconnect }}>
+      {children}
+    </MidnightContext.Provider>
+  );
+}
+
+export function useMidnight() {
+  const context = useContext(MidnightContext);
+  if (context === undefined) {
+    throw new Error('useMidnight must be used within a MidnightProvider');
+  }
+  return context;
 }
