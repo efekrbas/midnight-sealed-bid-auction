@@ -28,6 +28,15 @@ SilentBid is designed around a strict privacy boundary:
 *   **Private (Off-Chain):** The actual numerical value of a user's bid during the open auction, and the random nonces used to salt their cryptographic hashes. This data never leaves the user's browser.
 *   **Proven (Zero-Knowledge):** When a user submits a bid, the `submit_bid` circuit generates a local ZK proof proving that `bidAmount >= minBid`. The blockchain verifies this proof without ever learning what the `bidAmount` actually is.
 
+## Why Midnight?
+
+Midnight is a **data protection blockchain platform** that addresses a fundamental challenge: how to use distributed ledgers while maintaining the privacy required for sensitive data. 
+
+Unlike traditional blockchains where every transaction is permanently visible, Midnight introduces **selective disclosure** via zk-SNARKs. This enables:
+- **Public State:** Traditional blockchain data stored on-chain (e.g., auction status, minimum bid).
+- **Private State:** Encrypted data stored locally by users, never exposed to the network (e.g., your actual bid amount).
+- **Zero-Knowledge Proofs:** The bridge between public and private states. Midnight can verify computations without seeing the input data, allowing SilentBid to prove your bid is valid without revealing it.
+
 ## Tech Stack
 
 *   **Smart Contracts:** Compact (Midnight Network DSL)
