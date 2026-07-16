@@ -20,7 +20,9 @@ function App() {
             <div className="flex items-center gap-4">
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-midnight rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative w-12 h-12 rounded-xl border border-gray-800 bg-obsidian p-1 flex items-center justify-center font-bold text-lg text-emerald">SB</div>
+                <div className="relative w-12 h-12 rounded-xl border border-gray-800 bg-obsidian flex items-center justify-center overflow-hidden">
+                  <img src="/favicon.png" alt="SilentBid Logo" className="w-full h-full object-cover" />
+                </div>
               </div>
               <div>
                 <h1 className="text-2xl font-mono font-bold tracking-tight text-white">
