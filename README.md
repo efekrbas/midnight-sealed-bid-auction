@@ -3,13 +3,13 @@
 
 > A truly private, decentralized sealed-bid auction powered by Zero-Knowledge Proofs on the Midnight Network.
 
-**Live Demo:** [https://silentbid-demo.placeholder.com](https://silentbid-demo.placeholder.com)
+**Live Demo:** [https://midnight-sealed-bid-auction-self.vercel.app/](https://midnight-sealed-bid-auction-self.vercel.app/)
 
 ## Contract Deployments
 
 | Network | Contract Address |
 |---------|-----------------|
-| Preprod | `pending_deployment_address_here` |
+| Preprod | `mn_addr_preprod13twsuf59yw5r3cwus4tf56d3fggnjuaa08qgftumvs5prnlcj33q4kwrsa` |
 | Preview | `pending_deployment_address_here` |
 
 ## What This Product Does
