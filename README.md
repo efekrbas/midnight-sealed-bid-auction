@@ -1,5 +1,5 @@
 # SilentBid (Sealed-Bid Auction)
-![CI Status](https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPOSITORY_NAME>/actions/workflows/ci.yml/badge.svg)
+![CI Status](https://github.com/efekrbas/midnight-sealed-bid-auction/actions/workflows/ci.yml/badge.svg)
 
 > A truly private, decentralized sealed-bid auction powered by Zero-Knowledge Proofs on the Midnight Network.
 
@@ -56,7 +56,7 @@ Unlike traditional blockchains where every transaction is permanently visible, M
    ```
 3. **Clone and Install:**
    ```bash
-   git clone https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPOSITORY_NAME>.git
+   git clone https://github.com/efekrbas/midnight-sealed-bid-auction.git
    cd midnight-sealed-bid-auction
    npm install
    ```
