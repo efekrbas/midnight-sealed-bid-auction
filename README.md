@@ -93,4 +93,4 @@ For a detailed step-by-step walkthrough on how to connect your wallet, place bid
 
 ---
 
-**Built by:** [@YourXProfilePlaceholder](https://x.com/YourXProfilePlaceholder)
+**Built by:** [@SilentBidZK](https://x.com/SilentBidZK)
