@@ -1,19 +1,40 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useMidnight } from '../hooks/useMidnight';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, Zap, Fingerprint, Coins } from 'lucide-react';
+import { Lock, Unlock, Zap, Fingerprint, Coins, Loader2, CheckCircle2 } from 'lucide-react';
+
+interface NotificationState {
+  message: string;
+  subMessage?: string;
+  type: 'success' | 'info';
+  id: number;
+}
 
 export default function AuctionDashboard() {
   const { isConnected } = useMidnight();
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [notification, setNotification] = useState<NotificationState | null>(null);
 
   // Mock auction state - in a real app this would be fetched from the indexer
   // using publicDataProvider.queryContractState()
   const auctionState: string = 'OPEN'; // 'OPEN', 'REVEAL', 'CLOSED'
   const highestBid = 0;
   const minBid = 150;
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const showNotification = (message: string, subMessage: string, type: 'success' | 'info' = 'success') => {
+    setNotification({ message, subMessage, type, id: Date.now() });
+  };
 
   const handleBidSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -23,7 +44,10 @@ export default function AuctionDashboard() {
     
     // Simulate Midnight ZK Proof Generation (usually takes 1-3 seconds locally)
     setTimeout(() => {
-      alert(`Private Bid of ${bidAmount} successfully submitted!\n\nYour ZK proof was generated locally. Only the commitment (hash) is visible on-chain.`);
+      showNotification(
+        `Private Bid of ${bidAmount} successfully submitted!`,
+        `Your ZK proof was generated locally. Only the commitment (hash) is visible on-chain.`
+      );
       setIsSubmitting(false);
       setBidAmount('');
     }, 2500);
@@ -34,7 +58,10 @@ export default function AuctionDashboard() {
     
     // Simulate reveal execution
     setTimeout(() => {
-      alert(`Bid revealed successfully!\n\nThe contract verified your local witness against the on-chain commitment and securely updated the highest bid.`);
+      showNotification(
+        `Bid revealed successfully!`,
+        `The contract verified your local witness against the on-chain commitment and securely updated the highest bid.`
+      );
       setIsRevealing(false);
     }, 2000);
   };
@@ -55,7 +82,30 @@ export default function AuctionDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            key={notification.id}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="absolute top-0 left-0 right-0 z-50 flex justify-center -mt-4 pointer-events-none"
+          >
+            <div className="bg-emerald-900/90 backdrop-blur-md border border-emerald-500/50 text-white p-4 rounded-xl shadow-2xl max-w-md w-full pointer-events-auto flex gap-3">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-bold font-mono text-emerald-50">{notification.message}</h4>
+                {notification.subMessage && (
+                  <p className="text-sm text-emerald-200 mt-1">{notification.subMessage}</p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Public Auction State Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
@@ -110,7 +160,7 @@ export default function AuctionDashboard() {
                   min={minBid}
                   value={bidAmount}
                   onChange={(e) => setBidAmount(e.target.value)}
-                  className="relative w-full px-5 py-4 bg-obsidian border border-gray-700 rounded-lg focus:ring-2 focus:ring-midnight focus:border-transparent text-white font-mono text-lg placeholder-gray-600 transition-all outline-none"
+                  className="relative w-full px-5 py-4 bg-obsidian border border-gray-700 rounded-lg focus:ring-2 focus:ring-midnight focus:border-transparent text-white font-mono text-lg placeholder-gray-600 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="0.00"
                   disabled={isSubmitting || auctionState !== 'OPEN'}
                 />
@@ -131,7 +181,7 @@ export default function AuctionDashboard() {
                     exit={{ opacity: 0, y: -10 }}
                     className="flex justify-center items-center gap-3"
                   >
-                    <Fingerprint className="animate-pulse h-5 w-5 text-emerald" />
+                    <Loader2 className="animate-spin h-5 w-5 text-emerald" />
                     <span>Computing ZK Proof...</span>
                   </motion.div>
                 ) : (
@@ -174,10 +224,7 @@ export default function AuctionDashboard() {
             >
                {isRevealing ? (
                   <>
-                    <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+                    <Loader2 className="animate-spin h-5 w-5 text-gray-400" />
                     <span>Disclosing to Ledger...</span>
                   </>
                 ) : (
