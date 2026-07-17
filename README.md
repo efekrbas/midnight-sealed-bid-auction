@@ -11,7 +11,6 @@
 | Network | Contract Address |
 |---------|-----------------|
 | Preprod | `mn_addr_preprod13twsuf59yw5r3cwus4tf56d3fggnjuaa08qgftumvs5prnlcj33q4kwrsa` |
-| Preview | `pending_deployment_address_here` |
 
 ## What This Product Does
 
