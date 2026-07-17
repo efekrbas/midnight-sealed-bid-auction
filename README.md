@@ -4,6 +4,7 @@
 > A truly private, decentralized sealed-bid auction powered by Zero-Knowledge Proofs on the Midnight Network.
 
 **Live Demo:** [https://midnight-sealed-bid-auction-self.vercel.app/](https://midnight-sealed-bid-auction-self.vercel.app/)
+**Video Demo:** [Watch on YouTube](https://youtu.be/ENumoa4J4JE?si=rIdJqVqbifgJmbC9)
 
 ## Contract Deployments
 
