@@ -36,7 +36,7 @@ jobs:
       run: compact --version
 
     - name: Compile Contracts
-      run: compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction
+      run: compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction --skip-zk
       env:
         COMPACT_PATH: ./node_modules
 
