@@ -25,8 +25,11 @@ jobs:
 
     - name: Install Midnight Compact Compiler
       run: |
-        curl --proto '=https' --tlsv1.2 -sSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+        echo "$HOME/.compact/bin" >> $GITHUB_PATH
+
+    - name: Download Compact Compiler
+      run: compact update
 
     - name: Verify Compact Version
       run: compact --version
