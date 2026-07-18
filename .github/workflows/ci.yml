@@ -26,6 +26,7 @@ jobs:
     - name: Install Midnight Compact Compiler
       run: |
         curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
         echo "$HOME/.compact/bin" >> $GITHUB_PATH
 
     - name: Download Compact Compiler
@@ -36,6 +37,8 @@ jobs:
 
     - name: Compile Contracts
       run: compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction
+      env:
+        COMPACT_PATH: ./node_modules
 
     - name: Run Test Suite
       run: npx jest tests/sealed_bid_auction.test.ts
