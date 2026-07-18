@@ -36,9 +36,14 @@ jobs:
       run: compact --version
 
     - name: Compile Contracts
-      run: compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction --skip-zk
+      run: |
+        ls -la contracts
+        ls -la managed || true
+        compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction --skip-zk -v || (echo "Compilation failed with $?"; exit 1)
       env:
         COMPACT_PATH: ./node_modules
+        RUST_BACKTRACE: 1
+        ACTIONS_STEP_DEBUG: true
 
     - name: Run Test Suite
       run: npx jest tests/sealed_bid_auction.test.ts
