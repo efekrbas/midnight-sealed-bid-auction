@@ -39,7 +39,7 @@ constructor(minBidAmount: Uint<32>) {
     minBid = disclose(minBidAmount);
     auctionState = AuctionState.OPEN;
     highestBid = 0;
-    highestBidder = default<Bytes<32>>();
+    highestBidder = default<Bytes<32>>;
 }
 
 export circuit submit_bid(): [] {
