@@ -43,7 +43,7 @@ jobs:
       run: |
         ls -la contracts
         mkdir -p managed
-        compact --skip-zk -v contracts/sealed_bid_auction.compact managed/sealed_bid_auction || (echo "Compilation failed with $?"; exit 1)
+        compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction || (echo "Compilation failed with $?"; exit 1)
       env:
         COMPACT_PATH: ./node_modules
         RUST_BACKTRACE: 1
