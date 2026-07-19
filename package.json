@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "compact": "compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction --skip-zk -v"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-js": "2.5.0",

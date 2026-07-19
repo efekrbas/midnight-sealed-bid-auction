@@ -28,9 +28,13 @@ jobs:
         curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
         echo "$HOME/.local/bin" >> $GITHUB_PATH
         echo "$HOME/.compact/bin" >> $GITHUB_PATH
+      env:
+        COMPACT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Download Compact Compiler
       run: compact update
+      env:
+        COMPACT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Verify Compact Version
       run: compact --version
@@ -38,7 +42,7 @@ jobs:
     - name: Compile Contracts
       run: |
         ls -la contracts
-        ls -la managed || true
+        mkdir -p managed
         compact compile contracts/sealed_bid_auction.compact managed/sealed_bid_auction --skip-zk -v || (echo "Compilation failed with $?"; exit 1)
       env:
         COMPACT_PATH: ./node_modules
@@ -47,3 +51,5 @@ jobs:
 
     - name: Run Test Suite
       run: npx jest tests/sealed_bid_auction.test.ts
+      env:
+        NODE_OPTIONS: --experimental-vm-modules
