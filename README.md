@@ -20,6 +20,21 @@ SilentBid solves this by leveraging the Midnight Network's zero-knowledge capabi
 
 Once the bidding phase concludes, the auction transitions into a reveal phase. Bidders disclose their amounts, and the smart contract autonomously verifies the amounts against their original commitments to declare the winner. This ensures 100% transparency at the end of the auction, combined with 100% privacy during the competitive bidding phase.
 
+## Key Features
+
+- **True Privacy (Sealed-Bid):** Bidders commit to their bids without revealing the actual amount on-chain using zero-knowledge proofs.
+- **Fair Competition:** No front-running or bid-sniping. Participants cannot see each other's bids during the open phase.
+- **On-Chain Verification:** Cryptographic proof validates that the hidden bid meets the minimum bid requirement before accepting the commitment.
+- **Transparent Reveal Phase:** Once bidding closes, participants reveal their bids. The contract automatically verifies the revealed amount against the original commitment to declare a winner.
+- **Decentralized Execution:** Built as a smart contract on the Midnight Network using Compact DSL.
+
+## Future Scope
+
+- **Deposit Handling:** Integration with Midnight's token standards to lock funds during the commitment phase and refund non-winning bidders automatically.
+- **Auction Expiry:** Implementing time-based constraints or block-height limits to automatically transition auction states.
+- **Multi-Item Auctions:** Expanding the contract to support bidding on multiple distinct items in a single auction instance.
+- **Dynamic Bidding Rules:** Support for different auction types (e.g., Vickrey auctions where the winner pays the second-highest bid).
+
 ## Privacy Model
 
 SilentBid is designed around a strict privacy boundary:
