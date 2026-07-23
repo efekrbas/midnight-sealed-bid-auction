@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { CompiledContract } from '@midnight-ntwrk/compact-js';
-import { Contract } from '../../managed/contract';
-import type { Witnesses } from '../../managed/contract';
+import { Contract } from '../../managed/contract/index.js';
+import type { Witnesses } from '../../managed/contract/index.js';
 import type { ContractSession } from '../lib/midnight';
 
 // Helper to provide witnesses
@@ -21,9 +21,9 @@ const createWitnesses = (secretKeyHex: string, bidAmount: bigint, nonceHex: stri
   const nonceBytes = parseHex(nonceHex || '00'.repeat(32));
   
   return {
-    localSecretKey: (context) => [context, skBytes],
-    localBidAmount: (context) => [context, bidAmount],
-    localNonce: (context) => [context, nonceBytes],
+    localSecretKey: (context: any) => [context, skBytes],
+    localBidAmount: (context: any) => [context, bidAmount],
+    localNonce: (context: any) => [context, nonceBytes],
   };
 };
 
