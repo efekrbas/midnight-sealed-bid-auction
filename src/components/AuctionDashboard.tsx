@@ -1,5 +1,6 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useMidnight } from '../hooks/useMidnight';
+import { useAuctionContract } from '../hooks/useAuctionContract';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Unlock, Zap, Fingerprint, Coins, Loader2, CheckCircle2 } from 'lucide-react';
 
@@ -11,7 +12,10 @@ interface NotificationState {
 }
 
 export default function AuctionDashboard() {
-  const { isConnected } = useMidnight();
+  const { isConnected, session } = useMidnight();
+  const { deployAuction, submitBid, revealBid, isDeploying } = useAuctionContract(session);
+  const [contractAddress, setContractAddress] = useState<string>('');
+  
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
@@ -36,34 +40,64 @@ export default function AuctionDashboard() {
     setNotification({ message, subMessage, type, id: Date.now() });
   };
 
+  const handleDeploy = async () => {
+    try {
+      const address = await deployAuction(minBid);
+      setContractAddress(address);
+      showNotification('Auction deployed successfully!', `Contract Address: ${address}`);
+    } catch (error: any) {
+      console.error(error);
+      showNotification('Deployment failed', error.message, 'info');
+    }
+  };
+
   const handleBidSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!bidAmount) return;
+    if (!bidAmount || !contractAddress) return;
     
     setIsSubmitting(true);
     
-    // Simulate Midnight ZK Proof Generation (usually takes 1-3 seconds locally)
-    setTimeout(() => {
+    try {
+      // For demonstration, we use deterministic dummy keys
+      const dummySk = '01'.repeat(32);
+      const dummyNonce = '02'.repeat(32);
+      
+      await submitBid(contractAddress, dummySk, Number(bidAmount), dummyNonce);
+      
       showNotification(
         `Private Bid of ${bidAmount} successfully submitted!`,
         `Your ZK proof was generated locally. Only the commitment (hash) is visible on-chain.`
       );
-      setIsSubmitting(false);
       setBidAmount('');
-    }, 2500);
+    } catch (error: any) {
+      console.error(error);
+      showNotification('Bid submission failed', error.message, 'info');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReveal = async () => {
+    if (!contractAddress) return;
     setIsRevealing(true);
     
-    // Simulate reveal execution
-    setTimeout(() => {
+    try {
+      // Use the same deterministic dummy keys
+      const dummySk = '01'.repeat(32);
+      const dummyNonce = '02'.repeat(32);
+      
+      await revealBid(contractAddress, dummySk, Number(bidAmount), dummyNonce);
+      
       showNotification(
         `Bid revealed successfully!`,
         `The contract verified your local witness against the on-chain commitment and securely updated the highest bid.`
       );
+    } catch (error: any) {
+      console.error(error);
+      showNotification('Reveal failed', error.message, 'info');
+    } finally {
       setIsRevealing(false);
-    }, 2000);
+    }
   };
 
   if (!isConnected) {
@@ -105,6 +139,35 @@ export default function AuctionDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Contract Connection / Deployment */}
+      <div className="bg-gray-900/60 backdrop-blur-xl p-6 rounded-2xl border border-gray-700/50 shadow-lg flex flex-col md:flex-row gap-4 items-end mb-8">
+        <div className="flex-grow w-full">
+          <label htmlFor="contractAddress" className="block text-xs font-mono text-gray-400 mb-2 uppercase tracking-wider">Contract Address</label>
+          <input
+            id="contractAddress"
+            type="text"
+            value={contractAddress}
+            onChange={(e) => setContractAddress(e.target.value)}
+            className="w-full px-4 py-3 bg-obsidian border border-gray-700 rounded-lg focus:ring-2 focus:ring-midnight focus:border-transparent text-white font-mono text-sm placeholder-gray-600 transition-all outline-none"
+            placeholder="Paste contract address here..."
+          />
+        </div>
+        <button
+          onClick={handleDeploy}
+          disabled={isDeploying}
+          className="w-full md:w-auto shrink-0 bg-gray-800 hover:bg-gray-700 text-emerald-400 font-mono font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 border border-gray-700 hover:border-gray-600 flex justify-center items-center gap-2 h-[46px]"
+        >
+          {isDeploying ? (
+            <>
+              <Loader2 className="animate-spin h-4 w-4" />
+              <span>Deploying...</span>
+            </>
+          ) : (
+            'Deploy New Auction'
+          )}
+        </button>
+      </div>
 
       {/* Public Auction State Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -162,14 +225,14 @@ export default function AuctionDashboard() {
                   onChange={(e) => setBidAmount(e.target.value)}
                   className="relative w-full px-5 py-4 bg-obsidian border border-gray-700 rounded-lg focus:ring-2 focus:ring-midnight focus:border-transparent text-white font-mono text-lg placeholder-gray-600 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="0.00"
-                  disabled={isSubmitting || auctionState !== 'OPEN'}
+                  disabled={isSubmitting || auctionState !== 'OPEN' || !contractAddress}
                 />
               </div>
             </div>
             
             <button
               type="submit"
-              disabled={isSubmitting || auctionState !== 'OPEN' || !bidAmount}
+              disabled={isSubmitting || auctionState !== 'OPEN' || !bidAmount || !contractAddress}
               className="relative w-full bg-midnight hover:bg-indigo-500 text-white font-mono font-bold uppercase tracking-wider py-4 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:shadow-[0_0_30px_rgba(79,70,229,0.4)]"
             >
               <AnimatePresence mode="wait">
@@ -219,7 +282,7 @@ export default function AuctionDashboard() {
             
             <button
               onClick={handleReveal}
-              disabled={isRevealing || auctionState !== 'REVEAL'}
+              disabled={isRevealing || auctionState !== 'REVEAL' || !contractAddress}
               className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-mono font-bold py-4 px-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-700 hover:border-gray-600 flex justify-center items-center gap-2"
             >
                {isRevealing ? (

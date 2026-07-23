@@ -12,6 +12,9 @@
 |---------|-----------------|
 | Preprod | `mn_addr_preprod13twsuf59yw5r3cwus4tf56d3fggnjuaa08qgftumvs5prnlcj33q4kwrsa` |
 
+### Deployment Terminal Screenshot
+![Deployment Terminal Screenshot](/docs/images/deployment.png)
+
 ## What This Product Does
 
 Traditional blockchain auctions suffer from a critical flaw: every bid is public. This leads to bid-sniping, front-running, and price manipulation because participants can see exactly what others are willing to pay. 

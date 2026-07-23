@@ -1,5 +1,6 @@
 import { useState, useCallback, createContext, useContext, ReactNode } from 'react';
 import type { InitialAPI } from '@midnight-ntwrk/dapp-connector-api';
+import { createConnectedSession, type ContractSession } from '../lib/midnight';
 // Side-effect import to augment window.midnight
 import '@midnight-ntwrk/dapp-connector-api';
 
@@ -12,6 +13,7 @@ interface MidnightContextType {
   isConnected: boolean;
   isConnecting: boolean;
   walletAddress: string | null;
+  session: ContractSession | null;
   connect: () => Promise<void>;
   disconnect: () => void;
 }
@@ -22,6 +24,7 @@ export function MidnightProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [session, setSession] = useState<ContractSession | null>(null);
 
   const connect = useCallback(async () => {
     setIsConnecting(true);
@@ -59,6 +62,8 @@ export function MidnightProvider({ children }: { children: ReactNode }) {
       
       const connectionStatus = await connectedApi.getConnectionStatus();
       if (connectionStatus.status === 'connected') {
+        const newSession = await createConnectedSession(connectedApi);
+        setSession(newSession);
         setIsConnected(true);
         setWalletAddress(unshieldedAddress);
       }
@@ -73,10 +78,11 @@ export function MidnightProvider({ children }: { children: ReactNode }) {
   const disconnect = useCallback(() => {
     setIsConnected(false);
     setWalletAddress(null);
+    setSession(null);
   }, []);
 
   return (
-    <MidnightContext.Provider value={{ isConnected, isConnecting, walletAddress, connect, disconnect }}>
+    <MidnightContext.Provider value={{ isConnected, isConnecting, walletAddress, session, connect, disconnect }}>
       {children}
     </MidnightContext.Provider>
   );
