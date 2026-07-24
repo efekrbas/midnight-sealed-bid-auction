@@ -1,12 +1,10 @@
 import type { ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
-import { dappConnectorProofProvider } from '@midnight-ntwrk/midnight-js-dapp-connector-proof-provider';
+
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import type { MidnightProviders, WalletProvider, MidnightProvider } from '@midnight-ntwrk/midnight-js-types';
-import {
-  Transaction,
-} from '@midnight-ntwrk/ledger-v8';
+import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 
 export interface ContractSession {
   providers: MidnightProviders;
@@ -47,9 +45,10 @@ function createWalletProvider(api: ConnectedAPI, coinPublicKey: string, encrypti
       
       // Deserialize the balanced (finalized) transaction back
       const resultBytes = fromHex(result.tx);
+      const { Transaction } = await import('@midnight-ntwrk/ledger-v8');
       // @ts-ignore
       const finalizedTx = Transaction.deserialize(
-        resultBytes
+        'signature', 'proof', 'binding', resultBytes
       );
       return finalizedTx as any;
     },
@@ -92,10 +91,13 @@ export const createConnectedSession = async (
     substrateNodeUri: walletConfig.substrateNodeUri,
   });
 
+  // Configure Midnight.js network ID (required before provider interactions)
+  setNetworkId(walletConfig.networkId as any);
+
   // 1. Private State Provider (browser IndexedDB/LocalStorage)
   const privateStateProvider = levelPrivateStateProvider({
     privateStateStoreName: 'sealed-bid-auction-state',
-    privateStoragePasswordProvider: async () => 'dummy-password-for-hackathon',
+    privateStoragePasswordProvider: async () => 'Dummy-P4ssw0rd-For-Hackathon!',
     accountId: 'dummy-account-id',
   });
 
@@ -107,8 +109,8 @@ export const createConnectedSession = async (
     // circuitId looks like "sealed_bid_auction/submit_bid"
     const parts = circuitId.split('/');
     const cleanCircuitId = parts[parts.length - 1]; // "submit_bid"
-    // We moved the files into the "sealed_bid_auction" folder inside "public"
-    const fullUrl = `${window.location.origin}/sealed_bid_auction/${cleanCircuitId}${ext}`;
+    // We moved the files into the "zk/sealed_bid_auction" folder inside "public"
+    const fullUrl = `${window.location.origin}/zk/sealed_bid_auction/${cleanCircuitId}${ext}`;
     
     console.log(`[SilentBid] Fetching ZK artifact: ${fullUrl}`);
     const response = await fetch(fullUrl);
@@ -125,7 +127,13 @@ export const createConnectedSession = async (
   };
 
   // 3. Proof Provider (Delegates proving to the Wallet Extension)
-  const proofProvider = await dappConnectorProofProvider(api, zkConfigProvider, {} as any);
+  const provingProvider = await api.getProvingProvider(zkConfigProvider);
+  const proofProvider = {
+    async proveTx(unprovenTx: any, _config: any) {
+      const { CostModel } = await import('@midnight-ntwrk/ledger-v8');
+      return unprovenTx.prove(provingProvider, CostModel.initialCostModel());
+    },
+  };
 
   // 4. Indexer Public Data Provider — use the wallet's configured URIs
   const publicDataProvider = indexerPublicDataProvider(

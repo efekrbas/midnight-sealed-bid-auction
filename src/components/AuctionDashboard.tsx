@@ -132,7 +132,7 @@ export default function AuctionDashboard() {
               <div>
                 <h4 className="font-bold font-mono text-emerald-50">{notification.message}</h4>
                 {notification.subMessage && (
-                  <p className="text-sm text-emerald-200 mt-1">{notification.subMessage}</p>
+                  <p className="text-sm text-emerald-200 mt-1 break-all">{notification.subMessage}</p>
                 )}
               </div>
             </div>

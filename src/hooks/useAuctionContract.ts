@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
+import { findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { CompiledContract } from '@midnight-ntwrk/compact-js';
 import { Contract } from '../../managed/contract/index.js';
 import type { Witnesses } from '../../managed/contract/index.js';
@@ -27,6 +27,9 @@ const createWitnesses = (secretKeyHex: string, bidAmount: bigint, nonceHex: stri
   };
 };
 
+import { createUnprovenDeployTx, submitTxAsync } from '@midnight-ntwrk/midnight-js-contracts';
+import { sampleSigningKey } from '@midnight-ntwrk/compact-runtime';
+
 export const useAuctionContract = (session: ContractSession | null) => {
   const [contractAddress, setContractAddress] = useState<string | null>(null);
   const [isDeploying, setIsDeploying] = useState(false);
@@ -37,17 +40,31 @@ export const useAuctionContract = (session: ContractSession | null) => {
     setIsDeploying(true);
     try {
       const witnesses = createWitnesses('00'.repeat(32), 0n, '00'.repeat(32));
-      const midnightContract = CompiledContract.make('sealed_bid_auction', Contract).pipe(CompiledContract.withWitnesses(witnesses));
+      const midnightContract = CompiledContract.make('sealed_bid_auction', Contract).pipe(
+        CompiledContract.withWitnesses(witnesses),
+        CompiledContract.withCompiledFileAssets('./zk/sealed_bid_auction')
+      ) as any;
       
-      const deployed = await deployContract(session.providers, {
-        compiledContract: midnightContract,
-        args: [BigInt(minBid)],
-      } as any);
+      const deployTxData = await createUnprovenDeployTx(
+        { zkConfigProvider: session.providers.zkConfigProvider, walletProvider: session.providers.walletProvider } as any,
+        { compiledContract: midnightContract, args: [BigInt(minBid)], signingKey: sampleSigningKey() },
+      );
       
-      setContractAddress(deployed.deployTxData.public.contractAddress);
-      return deployed.deployTxData.public.contractAddress;
-    } catch (err) {
-      console.error('[SilentBid] deployAuction Error:', err);
+      const address = deployTxData.public.contractAddress;
+      setContractAddress(address);
+      
+      await submitTxAsync(session.providers, { unprovenTx: deployTxData.private.unprovenTx });
+      
+      // Persist private state so subsequent circuit calls can find it
+      await session.providers.privateStateProvider.setContractAddress(address);
+      await session.providers.privateStateProvider.setSigningKey(address, deployTxData.private.signingKey);
+      
+      return address;
+    } catch (err: any) {
+      console.error('[SilentBid] deployAuction Error full:', err);
+      if (err.cause) {
+        console.error('[SilentBid] FiberFailure cause:', JSON.stringify(err.cause, null, 2));
+      }
       throw err;
     } finally {
       setIsDeploying(false);
@@ -59,7 +76,10 @@ export const useAuctionContract = (session: ContractSession | null) => {
     setIsSubmitting(true);
     try {
       const witnesses = createWitnesses(secretKey, BigInt(bid), nonce);
-      const midnightContract = CompiledContract.make('sealed_bid_auction', Contract).pipe(CompiledContract.withWitnesses(witnesses));
+      const midnightContract = CompiledContract.make('sealed_bid_auction', Contract).pipe(
+        CompiledContract.withWitnesses(witnesses),
+        CompiledContract.withCompiledFileAssets('./zk/sealed_bid_auction')
+      ) as any;
       
       const deployed = await findDeployedContract(session.providers, {
         contractAddress: address,
@@ -77,7 +97,10 @@ export const useAuctionContract = (session: ContractSession | null) => {
     if (!session) throw new Error('No wallet connected');
     
     const witnesses = createWitnesses(secretKey, BigInt(bid), nonce);
-    const midnightContract = CompiledContract.make('sealed_bid_auction', Contract).pipe(CompiledContract.withWitnesses(witnesses));
+    const midnightContract = CompiledContract.make('sealed_bid_auction', Contract).pipe(
+      CompiledContract.withWitnesses(witnesses),
+      CompiledContract.withCompiledFileAssets('./zk/sealed_bid_auction')
+    ) as any;
     
     const deployed = await findDeployedContract(session.providers, {
       contractAddress: address,
