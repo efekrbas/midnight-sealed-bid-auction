@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import WalletConnect from './components/WalletConnect';
 import AuctionDashboard from './components/AuctionDashboard';
 import HeroLanding from './components/HeroLanding';
+import MarqueeBanner from './components/MarqueeBanner';
 import { MidnightProvider } from './hooks/useMidnight';
 import { motion } from 'framer-motion';
 import { useRef } from 'react';
@@ -65,6 +66,9 @@ export default function AppContent() {
 
             {/* Hero Landing Presentation Banner */}
             <HeroLanding onExploreClick={handleScrollToDashboard} />
+
+            {/* Infinite Marquee Ticker */}
+            <MarqueeBanner />
             
             <main ref={dashboardRef}>
               <AuctionDashboard />
