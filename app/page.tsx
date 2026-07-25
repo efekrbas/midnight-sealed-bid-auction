@@ -1,13 +1,19 @@
 "use client";
 
-import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+import AppContent from '../src/AppContent';
 import LoadingScreen from '../src/components/LoadingScreen';
 
-const AppContent = dynamic(() => import('../src/AppContent'), {
-  ssr: false,
-  loading: () => <LoadingScreen />,
-});
-
 export default function Page() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <LoadingScreen />;
+  }
+
   return <AppContent />;
 }
