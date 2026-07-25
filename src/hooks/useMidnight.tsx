@@ -6,9 +6,6 @@ import type { ContractSession } from '../lib/midnight';
 // ──────────────────────────────────────────────
 // Timeouts
 // ──────────────────────────────────────────────
-const CONNECT_TIMEOUT = 300_000; // 5 dakika (kullanıcı onay pop-up süresi için)
-const SESSION_TIMEOUT = 180_000; // 3 dakika (senkronizasyon için)
-
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
