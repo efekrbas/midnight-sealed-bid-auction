@@ -92,7 +92,7 @@ export function MidnightProvider({ children }: { children: ReactNode }) {
   const connect = useCallback(async () => {
     setIsConnecting(true);
     setConnectionError(null);
-    setConnectionStep('Bağlanılıyor…');
+    setConnectionStep('Connecting…');
 
     try {
       let unshieldedAddress: string = 'mn_addr_preprod13twsuf59yw5r3cwus4tf56d3fggnjuaa08qgftumvs5prnlcj33q4kwrsa';
@@ -151,15 +151,15 @@ export function MidnightProvider({ children }: { children: ReactNode }) {
       console.warn('[SilentBid] Connection error:', e.message || e);
       const msg = e?.message || '';
       if (msg.includes('TIMEOUT')) {
-        setConnectionError('Bağlantı zaman aşımına uğradı. Lütfen Lace (veya 1AM) eklentisini açın, cüzdanın kilidini kaldırın ve bekleyen izin isteğini onaylayın.');
+        setConnectionError('Connection request timed out. Please unlock your Lace wallet extension and approve the request.');
       } else if (/locked|unlock/i.test(msg)) {
-        setConnectionError('Cüzdan kilitli. Tarayıcı araç çubuğundaki eklentiyi açıp kilidi kaldırın ve tekrar deneyin.');
+        setConnectionError('Wallet is locked. Please unlock the extension in your browser toolbar and try again.');
       } else if (/shutdown|no longer|feature-flags/i.test(msg)) {
-        setConnectionError('Cüzdan eklentisi arka planda yeniden başlatıldı. Sayfayı Ctrl+Shift+R ile yenileyip tekrar bağlanın.');
+        setConnectionError('Wallet extension restarted in background. Please refresh the page (Ctrl+Shift+R) and reconnect.');
       } else if (/internal/i.test(msg)) {
-        setConnectionError('Cüzdan içinde dahili bir hata oluştu. Lütfen Lace (veya 1AM) eklentinizi açın, aktif hesabınızın "Preprod" ağında olduğundan ve cüzdanınızda bir Midnight cüzdanı oluşturulup senkronize edildiğinden emin olun.');
+        setConnectionError('Wallet internal error. Please ensure your wallet is on the Preprod network and synchronized.');
       } else {
-        setConnectionError(msg || 'Bilinmeyen hata oluştu.');
+        setConnectionError(msg || 'An unknown connection error occurred.');
       }
     } finally {
       setIsConnecting(false);
