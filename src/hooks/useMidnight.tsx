@@ -3,67 +3,9 @@
 import { useState, useCallback, createContext, useContext, ReactNode } from 'react';
 import type { ContractSession } from '../lib/midnight';
 
-// ──────────────────────────────────────────────
-// Timeouts
-// ──────────────────────────────────────────────
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`TIMEOUT: ${label} did not respond within ${ms / 1000}s.`));
-    }, ms);
-    promise.then(
-      (val) => { clearTimeout(timer); resolve(val); },
-      (err) => { clearTimeout(timer); reject(err); },
-    );
-  });
-}
 
-// ──────────────────────────────────────────────
-// 1AM Wallet Detection (from Midnight Skills)
-// window.midnight['1AM'] is the standard injection point
-// ──────────────────────────────────────────────
-async function detectWallet(timeoutMs = 5000): Promise<any | null> {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const midnight = (window as any).midnight;
-    if (midnight) {
-      const keys = Object.keys(midnight);
-      // 1. Try case-insensitive 'mnLace' or 'lace', or check object .name / .id property (preferred for Lace UUID keys)
-      const laceKey = keys.find(k => {
-        if (k.toLowerCase() === 'mnlace' || k.toLowerCase() === 'lace') return true;
-        const w = midnight[k];
-        return w && typeof w === 'object' && (
-          String(w.name || '').toLowerCase().includes('lace') || 
-          String(w.id || '').toLowerCase().includes('lace')
-        );
-      });
-      if (laceKey && typeof midnight[laceKey] === 'object') {
-        console.log(`[SilentBid] Found wallet: ${laceKey} (${midnight[laceKey].name || 'lace'})`);
-        return midnight[laceKey];
-      }
 
-      // 2. Try case-insensitive '1am' / '1AM' (fallback)
-      const oneAmKey = keys.find(k => k.toLowerCase() === '1am');
-      if (oneAmKey && typeof midnight[oneAmKey] === 'object') {
-        console.log(`[SilentBid] Found wallet: ${oneAmKey}`);
-        return midnight[oneAmKey];
-      }
 
-      // 3. Fallback: return first object containing connect or enable function
-      for (const [key, wallet] of Object.entries(midnight)) {
-        if (wallet && typeof wallet === 'object') {
-          const w = wallet as any;
-          if (typeof w.connect === 'function' || typeof w.enable === 'function') {
-            console.log(`[SilentBid] Found wallet under key: ${key} (${w.name || 'unnamed'})`);
-            return w;
-          }
-        }
-      }
-    }
-    await new Promise(r => setTimeout(r, 200));
-  }
-  return null;
-}
 
 // ──────────────────────────────────────────────
 // Context
