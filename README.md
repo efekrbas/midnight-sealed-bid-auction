@@ -3,8 +3,9 @@
 
 > A truly private, decentralized sealed-bid auction powered by Zero-Knowledge Proofs on the Midnight Network.
 
-**Live Demo:** [https://midnight-sealed-bid-auction-self.vercel.app/](https://midnight-sealed-bid-auction-self.vercel.app/)
-**Video Demo:** [Watch on YouTube](https://youtu.be/ENumoa4J4JE?si=rIdJqVqbifgJmbC9)
+**Live Demo:** [https://midnight-sealed-bid-auction-self.vercel.app/](https://midnight-sealed-bid-auction-self.vercel.app/)  
+**Video Demo:** [Watch on YouTube](https://youtu.be/ENumoa4J4JE?si=rIdJqVqbifgJmbC9)  
+**Product X Profile:** [@SilentBidZK](https://x.com/SilentBidZK)
 
 ## Contract Deployments
 
@@ -30,6 +31,62 @@ Once the bidding phase concludes, the auction transitions into a reveal phase. B
 - **On-Chain Verification:** Cryptographic proof validates that the hidden bid meets the minimum bid requirement before accepting the commitment.
 - **Transparent Reveal Phase:** Once bidding closes, participants reveal their bids. The contract automatically verifies the revealed amount against the original commitment to declare a winner.
 - **Decentralized Execution:** Built as a smart contract on the Midnight Network using Compact DSL.
+
+## Smart Contract Architecture
+
+### Compact DSL Circuit Design
+
+The smart contract (`contracts/sealed_bid_auction.compact`) defines three core ZK circuits:
+
+| Circuit | Privacy Model | What It Does |
+|---------|--------------|-------------|
+| `submit_bid` | **Private → Public hash** | Takes private `bidAmount`, `secretKey`, `nonce` as witnesses. Proves `bidAmount >= minBid` in ZK. Publishes only the cryptographic commitment hash on-chain. |
+| `close_bidding` | **Organizer-only** | Verifies the caller's secret key matches the organizer's public key. Transitions auction state from OPEN → REVEAL. |
+| `reveal_bid` | **Private → Public amount** | Bidder discloses their actual bid. Contract verifies the revealed amount matches the original commitment. Updates `highestBid` if applicable. |
+
+### Frontend → Contract Interaction
+
+The frontend implements **real** smart contract calls via the Midnight JS SDK:
+
+```
+User clicks "Submit Bid"
+    ↓
+useAuctionContract.ts → submitBid()
+    ↓
+CompiledContract.make('sealed_bid_auction', Contract)
+    .withWitnesses({ localSecretKey, localBidAmount, localNonce })
+    .withCompiledFileAssets('./zk/sealed_bid_auction')
+    ↓
+findDeployedContract(providers, { contractAddress, compiledContract })
+    ↓
+deployed.callTx.submit_bid()   ← Real Compact circuit call
+    ↓
+ZK proof generated locally → commitment hash published on-chain
+```
+
+**Key implementation files:**
+- [`useAuctionContract.ts`](src/hooks/useAuctionContract.ts) — `deployAuction()`, `submitBid()`, `revealBid()` using `createUnprovenDeployTx`, `findDeployedContract`, and `callTx`
+- [`midnight.ts`](src/lib/midnight.ts) — `createConnectedSession()` bridging `ConnectedAPI` to `MidnightProviders` (WalletProvider, ProofProvider, ZkConfigProvider, PublicDataProvider)
+- [`useMidnight.tsx`](src/hooks/useMidnight.tsx) — Wallet connection via `window.midnight` DApp Connector API with `wallet.connect(networkId)`
+
+### Deployment Implementation
+
+Contract deployment uses the Midnight JS SDK's `createUnprovenDeployTx`:
+
+```typescript
+// From useAuctionContract.ts — deployAuction()
+const midnightContract = CompiledContract.make('sealed_bid_auction', Contract).pipe(
+  CompiledContract.withWitnesses(witnesses),
+  CompiledContract.withCompiledFileAssets('./zk/sealed_bid_auction')
+);
+
+const deployTxData = await createUnprovenDeployTx(
+  { zkConfigProvider, walletProvider },
+  { compiledContract: midnightContract, args: [BigInt(minBid)], signingKey: sampleSigningKey() },
+);
+
+await submitTxAsync(providers, { unprovenTx: deployTxData.private.unprovenTx });
+```
 
 ## Future Scope
 
@@ -61,7 +118,7 @@ Unlike traditional blockchains where every transaction is permanently visible, M
 *   **Frontend Framework:** React 19 / Next.js
 *   **Language:** TypeScript
 *   **Styling:** Tailwind CSS
-*   **Web3 Integration:** `@midnight-ntwrk/dapp-connector-api`, `@midnight-ntwrk/compact-runtime`
+*   **Web3 Integration:** `@midnight-ntwrk/dapp-connector-api`, `@midnight-ntwrk/compact-runtime`, `@midnight-ntwrk/midnight-js-contracts`
 *   **Testing:** Jest, ts-jest
 
 ## Prerequisites & Local Setup

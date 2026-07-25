@@ -3,10 +3,19 @@
 import Layout from './components/Layout';
 import WalletConnect from './components/WalletConnect';
 import AuctionDashboard from './components/AuctionDashboard';
+import HeroLanding from './components/HeroLanding';
 import { MidnightProvider } from './hooks/useMidnight';
 import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { Coins } from 'lucide-react';
 
 export default function AppContent() {
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollToDashboard = () => {
+    dashboardRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <MidnightProvider>
       <Layout>
@@ -21,12 +30,12 @@ export default function AppContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-12 pb-6 border-b border-gray-800/60 relative">
+            <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 pb-6 border-b border-gray-800/60 relative">
               <div className="flex items-center gap-4">
                 <div className="relative group">
                   <div className="absolute -inset-0.5 bg-midnight rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200"></div>
                   <img 
-                    src="/logo.png" 
+                    src="/favicon.png" 
                     alt="SilentBid Logo" 
                     className="relative w-12 h-12 rounded-xl object-cover border border-gray-800 bg-obsidian p-1" 
                   />
@@ -38,10 +47,26 @@ export default function AppContent() {
                   <p className="text-xs font-mono text-emerald/80 tracking-wider uppercase mt-0.5">Zero-Knowledge Auction</p>
                 </div>
               </div>
-              <WalletConnect />
+
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://faucet.preprod.midnight.network"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/30 px-3 py-2 rounded-lg transition-colors"
+                  title="Claim free testnet tDUST from Midnight Faucet"
+                >
+                  <Coins className="w-3.5 h-3.5" />
+                  <span>Get Free tDUST ↗</span>
+                </a>
+                <WalletConnect />
+              </div>
             </header>
+
+            {/* Hero Landing Presentation Banner */}
+            <HeroLanding onExploreClick={handleScrollToDashboard} />
             
-            <main>
+            <main ref={dashboardRef}>
               <AuctionDashboard />
             </main>
           </motion.div>

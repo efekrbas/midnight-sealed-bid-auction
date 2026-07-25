@@ -2,7 +2,7 @@
 
 ## What You Need (Prerequisites)
 1. **Midnight Wallet (e.g. Lace or 1AM Wallet):** You need a Midnight-compatible browser extension to interact with the dApp.
-2. **tNIGHT Tokens:** The auction uses Testnet NIGHT (tNIGHT) on the Midnight `preview` network. Ensure you have some test tokens loaded in your wallet to cover minimum bids and transaction fees.
+2. **tNIGHT Tokens:** The auction uses Testnet NIGHT (tNIGHT) on the Midnight `testnet` network. Ensure you have some test tokens loaded in your wallet to cover minimum bids and transaction fees.
 3. **Modern Web Browser:** Chrome, Brave, or Firefox with the wallet extension active.
 
 ## Step-by-Step Guide
@@ -46,6 +46,6 @@
 
 ## Troubleshooting
 
-- **Wallet Connection Fails:** Ensure your wallet is unlocked and set to the `preview` network. Reload the page and try again.
+- **Wallet Connection Fails:** Ensure your wallet is unlocked and set to the `testnet` network. Reload the page and try again.
 - **Transaction Stuck on "Generating Proof":** Generating ZK proofs requires local computation. Depending on your CPU, this can take a few seconds. Do not close the tab.
 - **Cannot Disclose Bid:** Ensure the auction has transitioned to the REVEAL phase. You cannot disclose a bid while the auction is still OPEN.
