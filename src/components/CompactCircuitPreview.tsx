@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { Code2, RotateCcw, Copy, Check, ShieldCheck } from 'lucide-react';
 
 const CIRCUIT_CODE = `// submit_bid circuit — Zero-Knowledge Proof (Only hash is stored on-chain)
@@ -21,11 +21,20 @@ export circuit submit_bid(): [] {
 }`;
 
 export default function CompactCircuitPreview() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true, margin: '-50px' });
   const [displayedLength, setDisplayedLength] = useState(0);
-  const [isTyping, setIsTyping] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const fullText = CIRCUIT_CODE;
+
+  // Trigger typewriter animation when scrolled into view
+  useEffect(() => {
+    if (isInView) {
+      setIsTyping(true);
+    }
+  }, [isInView]);
 
   // Typewriter effect loop
   useEffect(() => {
@@ -110,6 +119,7 @@ export default function CompactCircuitPreview() {
 
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
