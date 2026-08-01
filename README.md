@@ -1,6 +1,7 @@
 # SilentBid (Sealed-Bid Auction)
 
 This project is built on the Midnight Network.
+
 ![CI Status](https://github.com/efekrbas/midnight-sealed-bid-auction/actions/workflows/ci.yml/badge.svg?branch=main)
 
 > A truly private, decentralized sealed-bid auction powered by Zero-Knowledge Proofs on the Midnight Network.
